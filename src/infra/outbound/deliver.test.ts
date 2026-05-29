@@ -329,6 +329,21 @@ describe("deliverOutboundPayloads", () => {
     expect(results).toEqual([]);
   });
 
+  it("drops standalone internal runtime artifacts before Telegram delivery", async () => {
+    const sendTelegram = vi.fn().mockResolvedValue({ messageId: "m1", chatId: "c1" });
+
+    const results = await deliverOutboundPayloads({
+      cfg: telegramChunkConfig,
+      channel: "telegram",
+      to: "123",
+      payloads: [{ text: "set-thought " }, { text: "───" }],
+      deps: { sendTelegram },
+    });
+
+    expect(sendTelegram).not.toHaveBeenCalled();
+    expect(results).toEqual([]);
+  });
+
   it("keeps WhatsApp media payloads but clears whitespace-only captions", async () => {
     const sendWhatsApp = vi.fn().mockResolvedValue({ messageId: "w1", toJid: "jid" });
     await deliverWhatsAppPayload({

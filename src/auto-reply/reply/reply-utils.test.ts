@@ -114,6 +114,19 @@ describe("normalizeReplyPayload", () => {
     expect(normalized).toBeNull();
     expect(reasons).toEqual(["empty"]);
   });
+
+  it("drops standalone internal runtime artifacts", () => {
+    const reasons: string[] = [];
+    const normalized = normalizeReplyPayload(
+      { text: "set-thought " },
+      {
+        onSkip: (reason) => reasons.push(reason),
+      },
+    );
+
+    expect(normalized).toBeNull();
+    expect(reasons).toEqual(["empty"]);
+  });
 });
 
 describe("typing controller", () => {

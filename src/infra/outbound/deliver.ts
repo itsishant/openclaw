@@ -17,6 +17,7 @@ import {
   appendAssistantMessageToSessionTranscript,
   resolveMirroredTranscriptText,
 } from "../../config/sessions.js";
+import { sanitizeUserFacingText } from "../../agents/pi-embedded-helpers.js";
 import type { sendMessageDiscord } from "../../discord/send.js";
 import { createInternalHookEvent, triggerInternalHook } from "../../hooks/internal-hooks.js";
 import type { sendMessageIMessage } from "../../imessage/send.js";
@@ -418,6 +419,8 @@ async function deliverOutboundPayloadsCore(
       })),
     };
   };
+    const sanitizeOutboundText = (text: string, isError?: boolean): string =>
+      sanitizeUserFacingText(text, { errorContext: Boolean(isError) });
   const normalizeWhatsAppPayload = (payload: ReplyPayload): ReplyPayload | null => {
     const hasMedia = Boolean(payload.mediaUrl) || (payload.mediaUrls?.length ?? 0) > 0;
     const rawText = typeof payload.text === "string" ? payload.text : "";
@@ -519,6 +522,13 @@ async function deliverOutboundPayloadsCore(
           // Don't block delivery on hook failure
         }
       }
+
+      const sanitizedText = sanitizeOutboundText(payloadSummary.text, effectivePayload.isError);
+      if (!sanitizedText.trim() && payloadSummary.mediaUrls.length === 0 && !effectivePayload.channelData) {
+        continue;
+      }
+      payloadSummary.text = sanitizedText;
+      effectivePayload = { ...effectivePayload, text: sanitizedText };
 
       params.onPayload?.(payloadSummary);
       const sendOverrides = {

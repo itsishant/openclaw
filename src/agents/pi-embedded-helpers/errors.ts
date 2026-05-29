@@ -285,6 +285,17 @@ function isErrorPayloadObject(payload: unknown): payload is ErrorPayload {
   return false;
 }
 
+function isStandaloneInternalRuntimeArtifact(text: string): boolean {
+  const trimmed = text.trim();
+  if (!trimmed) {
+    return true;
+  }
+  if (/^set-thought(?::)?$/i.test(trimmed)) {
+    return true;
+  }
+  return /^[\-\u2013\u2014\u2500\u2501_=•·]{3,}$/.test(trimmed);
+}
+
 function parseApiErrorPayload(raw: string): ErrorPayload | null {
   if (!raw) {
     return null;
@@ -512,6 +523,10 @@ export function sanitizeUserFacingText(text: string, opts?: { errorContext?: boo
   const stripped = stripFinalTagsFromText(text);
   const trimmed = stripped.trim();
   if (!trimmed) {
+    return "";
+  }
+
+  if (isStandaloneInternalRuntimeArtifact(trimmed)) {
     return "";
   }
 

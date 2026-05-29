@@ -120,6 +120,11 @@ describe("sanitizeUserFacingText", () => {
     expect(sanitizeUserFacingText("\n\n")).toBe("");
     expect(sanitizeUserFacingText("  \n  ")).toBe("");
   });
+
+  it("drops standalone internal runtime artifacts", () => {
+    expect(sanitizeUserFacingText("set-thought ")).toBe("");
+    expect(sanitizeUserFacingText("───")).toBe("");
+  });
 });
 
 describe("stripThoughtSignatures", () => {
